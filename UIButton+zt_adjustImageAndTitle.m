@@ -15,22 +15,30 @@ static ZTContentAdjustType _zt_contentAdjustType = ZTContentAdjustImageLeftTitle
 
 @dynamic zt_contentAdjustType,zt_space;
 
-- (void)zt_beginAdjustContent {
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [self _zt_beginAdjustContent];
-    });
 
+- (void)zt_beginAdjustContent {
+    [self zt_beginAdjustContentWithMaxTitleWidth:0];
+}
+
+- (void)zt_beginAdjustContentImmediately {
+    [self _zt_beginAdjustContentWithMaxTitleWidth:0];
+}
+
+- (void)zt_beginAdjustContentWithMaxTitleWidth:(CGFloat)maxTitleWidth {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self _zt_beginAdjustContentWithMaxTitleWidth:maxTitleWidth];
+    });
 }
 
 #pragma mark---- private
 
-- (void)_zt_beginAdjustContent {
+- (void)_zt_beginAdjustContentWithMaxTitleWidth:(CGFloat)maxTitleWidth {
     UIImage    * btnImage = self.imageView.image;
     NSString    * btnTitle = self.titleLabel.text;
     
     if (!btnImage || btnTitle.length <= 0) {
-        NSAssert(false, @"请先设置按钮的图片以及文字");
+//        NSAssert(false, @"请先设置按钮的图片以及文字"); // 生产上太不友好
+        NSLog(@"请先设置按钮的图片以及文字");
         return;
     }
     
@@ -38,14 +46,12 @@ static ZTContentAdjustType _zt_contentAdjustType = ZTContentAdjustImageLeftTitle
     CGFloat imageWidth = imageSize.width;
     CGFloat imageHeight = imageSize.height;
     
-    CGSize titleSize = [btnTitle sizeWithAttributes:@{NSFontAttributeName:self.titleLabel.font}];
+    CGSize titleSize = [self.titleLabel sizeThatFits:CGSizeZero];
     CGFloat titleWidth = titleSize.width;
     CGFloat titleHeight = titleSize.height;
     
-    // 预防文字过长，超过按钮的宽度
-    CGFloat    btnWidth = CGRectGetWidth(self.frame);// 按钮的宽度
-    if (titleWidth > btnWidth - imageWidth - self.zt_space) {
-        titleWidth = btnWidth- imageWidth - self.zt_space;
+    if (maxTitleWidth > 0 && titleWidth > maxTitleWidth) {
+        titleWidth = maxTitleWidth;
     }
     
     CGFloat space = self.zt_space;
@@ -78,7 +84,6 @@ static ZTContentAdjustType _zt_contentAdjustType = ZTContentAdjustImageLeftTitle
             break;
     }
 }
-
 
 #pragma mark---- getter and setter
 
