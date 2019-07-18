@@ -7,9 +7,10 @@
 //
 
 #import "UIButton+zt_adjustImageAndTitle.h"
+#import <objc/runtime.h>
 
-static CGFloat _zt_space = 5;
-static ZTContentAdjustType _zt_contentAdjustType = ZTContentAdjustImageLeftTitleRight;
+const void * zt_spaceKey = "zt_spaceKey";
+const void * zt_contentAdjustTypeKey = "zt_contentAdjustTypeKey";
 
 @implementation UIButton (zt_adjustImageAndTitle)
 
@@ -30,6 +31,10 @@ static ZTContentAdjustType _zt_contentAdjustType = ZTContentAdjustImageLeftTitle
     });
 }
 
+- (void)zt_beginAdjustContentImmediatelyWithMaxTitleWidth:(CGFloat)maxTitleWidth {
+    [self _zt_beginAdjustContentWithMaxTitleWidth:maxTitleWidth];
+}
+
 #pragma mark---- private
 
 - (void)_zt_beginAdjustContentWithMaxTitleWidth:(CGFloat)maxTitleWidth {
@@ -37,8 +42,7 @@ static ZTContentAdjustType _zt_contentAdjustType = ZTContentAdjustImageLeftTitle
     NSString    * btnTitle = self.titleLabel.text;
     
     if (!btnImage || btnTitle.length <= 0) {
-//        NSAssert(false, @"请先设置按钮的图片以及文字"); // 生产上太不友好
-        NSLog(@"请先设置按钮的图片以及文字");
+        NSAssert(false, @"请先设置按钮的图片以及文字");
         return;
     }
     
@@ -88,19 +92,26 @@ static ZTContentAdjustType _zt_contentAdjustType = ZTContentAdjustImageLeftTitle
 #pragma mark---- getter and setter
 
 - (CGFloat)zt_space {
-    return _zt_space;
+    NSNumber * objc = objc_getAssociatedObject(self, zt_spaceKey);
+    if (!objc) {
+        return 5;
+    }
+    return [objc floatValue];
 }
 
 - (void)setZt_space:(CGFloat)zt_space {
-    _zt_space = zt_space;
+    objc_setAssociatedObject(self, zt_spaceKey, @(zt_space), OBJC_ASSOCIATION_RETAIN);
 }
 
 - (ZTContentAdjustType)zt_contentAdjustType {
-    return _zt_contentAdjustType;
+    NSNumber * objc = objc_getAssociatedObject(self, zt_contentAdjustTypeKey);
+    return [objc floatValue];
 }
 
 - (void)setZt_contentAdjustType:(ZTContentAdjustType)zt_contentAdjustType {
-    _zt_contentAdjustType = zt_contentAdjustType;
+    objc_setAssociatedObject(self, zt_contentAdjustTypeKey, @(zt_contentAdjustType), OBJC_ASSOCIATION_RETAIN);
 }
 
 @end
+
+
